@@ -6,6 +6,9 @@ import fitz  # PyMuPDF
 import docx
 from io import BytesIO
 import re
+from job_scraper import JobScraper
+import json
+
 
 # --- Page Configuration ---
 st.set_page_config(page_title="AI Resume Builder", layout="wide")
@@ -13,60 +16,61 @@ st.set_page_config(page_title="AI Resume Builder", layout="wide")
 # --- Function Definitions ---
 
 def scrape_job_description(url: str) -> str:
-    """
-    Fetches the HTML from a URL and uses the Gemini AI to intelligently
-    scrape and structure the key job details.
-    """
+    """Test scraping the specific Naukri URL"""
+    
+    # Your specific URL
+    naukri_url = url
+    print("Testing Naukri.com job scraping...")
+    print("=" * 60)
+    print(f"URL: {naukri_url}")
+    print()
+    
+    # Initialize scraper with Selenium support
+    scraper = JobScraper(use_selenium=True)
+    
     try:
-        # --- 1. Fetch Raw HTML ---
-        # Use requests to get the raw HTML source of the page.
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()  # Check for any HTTP errors
-        html_content = response.text
-
-        # --- 2. Extract Details with Gemini AI ---
-        # Using a more capable model as parsing raw HTML is a complex task.
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        # Scrape the job
+        job = scraper.scrape_job(naukri_url)
         
-        prompt = f"""
-        You are an expert web scraper and HR data extraction AI. Your task is to analyze the following raw HTML from a job posting URL and extract the key information into a clean, structured format.
-
-        **Instructions:**
-        1.  Parse the raw HTML provided below.
-        2.  Identify and consolidate the core Job Description, Key Responsibilities, Required Skills, and Eligibility/Qualifications.
-        3.  **You must ignore all irrelevant HTML elements** such as `<script>`, `<style>`, `<nav>`, `<header>`, and `<footer>`. Focus only on the main job content.
-        4.  Format the output using clear markdown headings and use bullet points for lists. Do not include any of your own commentary; provide only the extracted information.
-
-        ---
-        **RAW HTML CONTENT:**
-        ```html
-        {html_content}
-        ```
-        ---
-
-        **REQUIRED OUTPUT FORMAT:**
-
-        ## Job Description
-        [Provide a concise, 1-2 paragraph summary of the role.]
-
-        ## Key Responsibilities
-        - [List the primary responsibilities.]
-
-        ## Skills Required
-        - [List the essential technical and soft skills.]
-
-        ## Eligibility and Qualifications
-        - [List the required education, years of experience, etc.]
-        """
-        
-        ai_response = model.generate_content(prompt)
-        return ai_response.text
-
-    except requests.exceptions.RequestException as e:
-        return f"Error fetching URL: {e}"
+        if job:
+            print("✅ Successfully scraped job data!")
+            print("-" * 40)
+            print(f"Title: {job.title}")
+            print(f"Company: {job.company}")
+            print(f"Location: {job.location}")
+            print(f"Experience Required: {job.experience_required}")
+            print(f"Skills Found: {', '.join(job.required_skills)}")
+            print(f"Number of Responsibilities: {len(job.responsibilities)}")
+            
+            if job.responsibilities:
+                print("\nResponsibilities:")
+                for i, resp in enumerate(job.responsibilities[:3], 1):
+                    print(f"{i}. {resp}")
+            
+            print(f"\nDescription Preview: {job.description[:200]}...")
+            
+            # Export to files
+           # scraper.export_to_json([job], "naukri_job.json")
+           # scraper.export_to_csv([job], "naukri_job.csv")
+            
+          #   print("\n📄 Data exported to 'naukri_job.json' and 'naukri_job.csv'")
+            
+        else:
+            print("❌ Failed to scrape job data")
+            print("This might be due to:")
+            print("1. Site blocking automated access")
+            print("2. Changed website structure")
+            print("3. Network issues")
+            print("4. Missing ChromeDriver for Selenium")
+            return job    
     except Exception as e:
-        return f"An error occurred: {e}"
+        print(f"❌ Error occurred: {e}")
+        print("\nTroubleshooting steps:")
+        print("1. Install ChromeDriver: https://chromedriver.chromium.org/")
+        print("2. Make sure Chrome browser is installed")
+        print("3. Check internet connection")
+        print("4. Try running without Selenium (requests only)")
+
 
 def extract_text_from_resume(file):
     """Extracts text from an uploaded PDF or DOCX file."""

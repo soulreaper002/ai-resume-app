@@ -4,3 +4,7 @@ requests
 beautifulsoup4
 PyMuPDF
 python-docx
+pandas
+lxml
+html5lib
+
