@@ -3,6 +3,7 @@ Automat==20.2.0
 Babel==2.8.0
 bcrypt==3.2.0
 blinker==1.4
+beautifulsoup4
 certifi==2020.6.20
 chardet==4.0.0
 click==8.0.3
@@ -14,6 +15,8 @@ cryptography==3.4.8
 dbus-python==1.2.18
 distro==1.7.0
 distro-info
+python-docx
+google-generativeai
 httplib2==0.20.2
 hyperlink==21.0.0
 idna==3.3
@@ -37,6 +40,7 @@ pyasn1-modules==0.2.1
 pycurl==7.44.1
 PyGObject==3.42.1
 PyHamcrest==2.0.2
+python-docx
 PyJWT==2.3.0
 pyOpenSSL==21.0.0
 pyparsing==2.4.7
