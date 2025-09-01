@@ -12,15 +12,61 @@ st.set_page_config(page_title="AI Resume Builder", layout="wide")
 
 # --- Function Definitions ---
 
-def scrape_job_description(url):
-    """Scrapes job description text from a URL."""
+def scrape_job_description(url: str) -> str:
+    """
+    Fetches the HTML from a URL and uses the Gemini AI to intelligently
+    scrape and structure the key job details.
+    """
     try:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        soup = BeautifulSoup(response.text, 'html.parser')
-        job_text = soup.body.get_text(separator=' ', strip=True)
-        return job_text if job_text else "Could not retrieve text from URL."
+        # --- 1. Fetch Raw HTML ---
+        # Use requests to get the raw HTML source of the page.
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Check for any HTTP errors
+        html_content = response.text
+
+        # --- 2. Extract Details with Gemini AI ---
+        # Using a more capable model as parsing raw HTML is a complex task.
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        prompt = f"""
+        You are an expert web scraper and HR data extraction AI. Your task is to analyze the following raw HTML from a job posting URL and extract the key information into a clean, structured format.
+
+        **Instructions:**
+        1.  Parse the raw HTML provided below.
+        2.  Identify and consolidate the core Job Description, Key Responsibilities, Required Skills, and Eligibility/Qualifications.
+        3.  **You must ignore all irrelevant HTML elements** such as `<script>`, `<style>`, `<nav>`, `<header>`, and `<footer>`. Focus only on the main job content.
+        4.  Format the output using clear markdown headings and use bullet points for lists. Do not include any of your own commentary; provide only the extracted information.
+
+        ---
+        **RAW HTML CONTENT:**
+        ```html
+        {html_content}
+        ```
+        ---
+
+        **REQUIRED OUTPUT FORMAT:**
+
+        ## Job Description
+        [Provide a concise, 1-2 paragraph summary of the role.]
+
+        ## Key Responsibilities
+        - [List the primary responsibilities.]
+
+        ## Skills Required
+        - [List the essential technical and soft skills.]
+
+        ## Eligibility and Qualifications
+        - [List the required education, years of experience, etc.]
+        """
+        
+        ai_response = model.generate_content(prompt)
+        return ai_response.text
+
+    except requests.exceptions.RequestException as e:
+        return f"Error fetching URL: {e}"
     except Exception as e:
-        return f"Error scraping URL: {e}"
+        return f"An error occurred: {e}"
 
 def extract_text_from_resume(file):
     """Extracts text from an uploaded PDF or DOCX file."""
@@ -41,7 +87,7 @@ def extract_text_from_resume(file):
 def get_gemini_response(prompt):
     """Sends a prompt to the Gemini model and returns the response."""
     # Using a more powerful model for better generation and analysis
-    model = genai.GenerativeModel('gemini-1.5-pro-latest')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     response = model.generate_content(prompt)
     return response.text
 
@@ -150,7 +196,7 @@ def get_resources_prompt(new_resume, job_desc):
 
 # --- Main App UI & Logic ---
 
-st.title("🚀 Enhanced AI Resume Builder")
+st.title("🤖 AI Resume Builder")
 st.write("Generate a high-scoring, tailored resume and get interview-ready.")
 
 try:
