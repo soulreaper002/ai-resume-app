@@ -7,4 +7,4 @@ python-docx
 pandas
 lxml
 html5lib
-
+selenium
