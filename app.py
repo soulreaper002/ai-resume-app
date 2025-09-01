@@ -8,7 +8,7 @@ from io import BytesIO
 import re
 
 # --- Page Configuration ---
-st.set_page_config(page_title="Enhanced AI Resume Builder", layout="wide")
+st.set_page_config(page_title="AI Resume Builder", layout="wide")
 
 # --- Function Definitions ---
 
