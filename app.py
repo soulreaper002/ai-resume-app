@@ -40,7 +40,7 @@ def extract_text_from_resume(file):
 
 def get_gemini_response(prompt):
     """Sends a prompt to the Gemini model and returns the response."""
-    model = genai.GenerativeModel('gemini-1.5-pro-latest')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     response = model.generate_content(prompt)
     return response.text
 
